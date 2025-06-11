@@ -1,0 +1,75 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cron-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-06-10",
+	"account_id": "a4a35a367b8da2addaaf512ce3e2d4bd",
+	"observability": {
+		"enabled": true
+	},
+	"triggers": {
+		"crons": [
+			"* * * * *"
+		]
+	},
+	/**
+	 * Smart Placement
+	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
+	 */
+	// "placement": { "mode": "smart" },
+
+	/**
+	 * Bindings
+	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
+	 * databases, object storage, AI inference, real-time communication and more.
+	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
+	 */
+	 "d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "xeopub_db",
+			"database_id": "6825b51f-ff26-450b-8068-9c241e0a2d62",			
+			"migrations_dir": "../migrations"
+		}
+	 ],
+	 "r2_buckets": [
+		{
+			"binding": "POST_PROJECTS_BUCKET",
+			"bucket_name": "post-projects",
+			"preview_bucket_name": "post-projects-preview"			
+		},
+		{
+			"binding": "DEFAULT_FILES_BUCKET",
+			"bucket_name": "default-files",
+			"preview_bucket_name": "default-files-preview"			
+		}
+	],
+
+	/**
+	 * Environment Variables (production values)
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+	 */
+	 "vars": {
+		"ENVIRONMENT": "production",
+	},
+	/**
+	 * Note: Use secrets to store sensitive data.
+	 * https://developers.cloudflare.com/workers/configuration/secrets/
+	 */
+
+	/**
+	 * Static Assets
+	 * https://developers.cloudflare.com/workers/static-assets/binding/
+	 */
+	// "assets": { "directory": "./public/", "binding": "ASSETS" },
+
+	/**
+	 * Service Bindings (communicate between multiple Workers)
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
+	 */
+	// "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
+}

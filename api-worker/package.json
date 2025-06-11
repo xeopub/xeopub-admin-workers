@@ -1,0 +1,16 @@
+{
+	"name": "api-worker",
+	"scripts": {
+		"dev": "wrangler dev --persist-to ../.wrangler/state",
+		"deploy": "wrangler deploy --minify",
+		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
+		"list-migrations": "wrangler d1 migrations list xeopub_db --local --persist-to ../.wrangler/state",
+		"apply-migrations": "wrangler d1 migrations apply xeopub_db --local --persist-to ../.wrangler/state"
+	},
+	"dependencies": {
+		"hono": "^4.7.11"
+	},
+	"devDependencies": {
+		"wrangler": "^4.19.1"
+	}
+}
