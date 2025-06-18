@@ -69,28 +69,24 @@ CREATE TABLE IF NOT EXISTS user_config (
 
 CREATE INDEX IF NOT EXISTS idx_user_config_user_id_key ON user_config (user_id, key);
 
-CREATE TABLE IF NOT EXISTS shows (
+CREATE TABLE IF NOT EXISTS websites (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     slug TEXT NOT NULL UNIQUE,
     description TEXT NOT NULL,
     slogan TEXT NOT NULL,
-    custom_url TEXT NOT NULL,
-    default_episode_background_bucket_key TEXT NOT NULL,
-    default_episode_thumbnail_bucket_key TEXT NOT NULL,
-    default_episode_background_music_bucket_key TEXT NOT NULL,
-    default_episode_intro_music_bucket_key TEXT NOT NULL,
-    first_comment_template TEXT NOT NULL,
+    domain TEXT NOT NULL,
     prompt_template_to_gen_evergreen_titles TEXT NOT NULL,
     prompt_template_to_gen_news_titles TEXT NOT NULL,
     prompt_template_to_gen_series_titles TEXT NOT NULL,
     prompt_template_to_gen_article_content TEXT NOT NULL,
+    prompt_template_to_enrich_article_content TEXT NOT NULL,
     prompt_template_to_gen_article_metadata TEXT NOT NULL,
-    prompt_template_to_gen_episode_script TEXT NOT NULL,
-    prompt_template_to_gen_episode_background TEXT NOT NULL,
-    prompt_template_to_gen_episode_audio TEXT NOT NULL,
-    prompt_template_to_gen_episode_background_music TEXT NOT NULL,
-    prompt_template_to_gen_episode_intro_music TEXT NOT NULL,
+    builder TEXT NOT NULL,
+    git_repo_owner TEXT NOT NULL,
+    git_repo_name TEXT NOT NULL,
+    git_repo_branch TEXT NOT NULL,
+    git_api_token TEXT NOT NULL,
     config TEXT CHECK (json_valid(config)) NOT NULL,
     language_code TEXT CHECK (LENGTH(language_code) = 2) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -102,16 +98,16 @@ CREATE TABLE IF NOT EXISTS series (
     title TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     description TEXT,
-    show_id INTEGER NOT NULL,
+    website_id INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (show_id) REFERENCES shows(id)
+    FOREIGN KEY (website_id) REFERENCES websites(id)
 );
 
-CREATE TABLE IF NOT EXISTS episodes (
+CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    show_id INTEGER NOT NULL,
-    series_id INTEGER,
+    website_id INTEGER NOT NULL,
+    series_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     description TEXT NOT NULL,
@@ -120,18 +116,9 @@ CREATE TABLE IF NOT EXISTS episodes (
     type TEXT NOT NULL CHECK (type IN ('evergreen', 'news')),
     first_comment TEXT,
     script TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(script)),
-    audio_bucket_key TEXT,
-    background_bucket_key TEXT,
-    background_music_bucket_key TEXT,
-    intro_music_bucket_key TEXT,
-    video_bucket_key TEXT,
-    thumbnail_bucket_key TEXT,
-    article_image_bucket_key TEXT,
-    thumbnail_gen_prompt TEXT,
+    featured_image_bucket_key TEXT,
     article_image_gen_prompt TEXT,
     scheduled_publish_at DATETIME,
-    status_on_youtube TEXT CHECK (status_on_youtube IN ('none', 'scheduled', 'public', 'private', 'deleted')),
-    status_on_website TEXT CHECK (status_on_website IN ('none', 'scheduled', 'public', 'private', 'deleted')),
     status_on_x TEXT CHECK (status_on_x IN ('none', 'scheduled', 'public', 'private', 'deleted')),
     freezeStatus BOOLEAN DEFAULT TRUE,
     status TEXT NOT NULL CHECK (status IN (
@@ -140,104 +127,61 @@ CREATE TABLE IF NOT EXISTS episodes (
     last_status_change_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (show_id) REFERENCES shows(id),
+    FOREIGN KEY (website_id) REFERENCES websites(id),
     FOREIGN KEY (series_id) REFERENCES series(id)
 );
 
--- Indexes for episodes table
-CREATE INDEX IF NOT EXISTS idx_episodes_status_freeze_sched_created ON episodes (status, freezeStatus, scheduled_publish_at, updated_at);
-CREATE INDEX IF NOT EXISTS idx_episodes_category_id ON episodes (show_id);
+-- Indexes for posts table
+CREATE INDEX IF NOT EXISTS idx_posts_status_freeze_sched_created ON posts (status, freezeStatus, scheduled_publish_at, updated_at);
+CREATE INDEX IF NOT EXISTS idx_posts_category_id ON posts (website_id);
 
-CREATE TABLE IF NOT EXISTS episode_cron_logs (
+CREATE TABLE IF NOT EXISTS post_assets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    episode_id INTEGER NOT NULL,
+    post_id INTEGER NOT NULL,
+    r2_bucket_key TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_post_assets_post_id ON post_assets (post_id);
+CREATE INDEX IF NOT EXISTS idx_post_assets_r2_bucket_key ON post_assets (r2_bucket_key);
+
+CREATE TABLE IF NOT EXISTS post_cron_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
     data TEXT NOT NULL CHECK (json_valid(data)),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (episode_id) REFERENCES episodes(id)
+    FOREIGN KEY (post_id) REFERENCES posts(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_episode_cron_log_episode_id ON episode_cron_logs (episode_id);
-
-CREATE TABLE IF NOT EXISTS youtube_channels (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    show_id INTEGER NOT NULL,
-    youtube_platform_id TEXT NOT NULL UNIQUE,
-    youtube_platform_category_id TEXT NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    video_description_template TEXT NOT NULL,
-    first_comment_template TEXT NOT NULL,
-    language_code TEXT CHECK (LENGTH(language_code) = 2) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (show_id) REFERENCES shows(id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_youtube_channels_show_id ON youtube_channels (show_id);
-
-CREATE TABLE IF NOT EXISTS youtube_playlists (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    youtube_platform_id TEXT NOT NULL UNIQUE,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    channel_id INTEGER NOT NULL,
-    series_id INTEGER NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (channel_id) REFERENCES youtube_channels(id),
-    FOREIGN KEY (series_id) REFERENCES series(id)
-);
-
-CREATE TABLE IF NOT EXISTS youtube_videos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    episode_id INTEGER NOT NULL,
-    youtube_channel_id INTEGER NOT NULL,
-    youtube_platform_id TEXT NOT NULL UNIQUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (episode_id) REFERENCES episodes(id) ON DELETE CASCADE,
-    FOREIGN KEY (youtube_channel_id) REFERENCES youtube_channels(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_youtube_videos_episode_id ON youtube_videos (episode_id);
-
-CREATE TABLE IF NOT EXISTS external_service_tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    external_task_id TEXT NOT NULL,
-    type TEXT NOT NULL,
-    data TEXT CHECK (json_valid(data)) NOT NULL,
-    status TEXT NOT NULL CHECK (status IN ('pending', 'processing', 'completed', 'error')),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
--- Indexes for external_service_tasks table
-CREATE INDEX IF NOT EXISTS idx_external_service_tasks_external_task_id ON external_service_tasks (external_task_id);
+CREATE INDEX IF NOT EXISTS idx_post_cron_log_post_id ON post_cron_logs (post_id);
 
 -- Triggers
--- On episode insert: if episode is in a series, its episode must match the series' show
-CREATE TRIGGER IF NOT EXISTS episode_show_match_series_insert
-BEFORE INSERT ON episodes
+-- On post insert: if post is in a series, its post must match the series' website
+CREATE TRIGGER IF NOT EXISTS post_website_match_series_insert
+BEFORE INSERT ON posts
 FOR EACH ROW
-WHEN NEW.series_id IS NOT NULL AND NEW.show_id != (SELECT show_id FROM series WHERE id = NEW.series_id)
+WHEN NEW.website_id != (SELECT website_id FROM series WHERE id = NEW.series_id)
 BEGIN
-    SELECT RAISE(ABORT, 'episode show_id must match the show_id of the series.');
+    SELECT RAISE(ABORT, 'post website_id must match the website_id of the series.');
 END;
 
--- On episode update: if episode is in a series, its show must match the series' show
-CREATE TRIGGER IF NOT EXISTS episode_show_match_series_update
-BEFORE UPDATE ON episodes
+-- On post update: if post is in a series, its website must match the series' website
+CREATE TRIGGER IF NOT EXISTS post_website_match_series_update
+BEFORE UPDATE ON posts
 FOR EACH ROW
-WHEN NEW.series_id IS NOT NULL AND NEW.show_id != (SELECT show_id FROM series WHERE id = NEW.series_id)
+WHEN NEW.website_id != (SELECT website_id FROM series WHERE id = NEW.series_id)
 BEGIN
-    SELECT RAISE(ABORT, 'episode show_id must match the show_id of the series.');
+    SELECT RAISE(ABORT, 'post website_id must match the website_id of the series.');
 END;
 
--- On series show update: prevent if series has any episodes
-CREATE TRIGGER IF NOT EXISTS prevent_series_show_change_if_has_episodes
-BEFORE UPDATE OF show_id ON series
+-- On series website update: prevent if series has any posts
+CREATE TRIGGER IF NOT EXISTS prevent_series_website_change_if_has_posts
+BEFORE UPDATE OF website_id ON series
 FOR EACH ROW
-WHEN OLD.show_id != NEW.show_id AND EXISTS (SELECT 1 FROM episodes WHERE series_id = NEW.id)
+WHEN OLD.website_id != NEW.website_id AND EXISTS (SELECT 1 FROM posts WHERE series_id = NEW.id)
 BEGIN
-    SELECT RAISE(ABORT, 'Cannot change show of a series with episodes. Update or move episodes first.');
+    SELECT RAISE(ABORT, 'Cannot change website of a series with posts. Update or move posts first.');
 END;
