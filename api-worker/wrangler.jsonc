@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "api-worker",
+	"name": "dash-api-worker",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-06-10",
 	"account_id": "a4a35a367b8da2addaaf512ce3e2d4bd",

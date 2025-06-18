@@ -1,4 +1,4 @@
-// /Users/fabian/Documents/CodeProjects/github.com/xeocast/xeocast-admin-workers/api-worker/src/middlewares/auth.middleware.ts
+// /Users/fabian/Documents/CodeProjects/github.com/xeopub/xeopub-admin-workers/api-worker/src/middlewares/auth.middleware.ts
 import { MiddlewareHandler, Context, Next } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { HTTPException } from 'hono/http-exception';

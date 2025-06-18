@@ -20,13 +20,13 @@ wrangler types
 npx wrangler dev --test-scheduled
 curl "http://localhost:8787/__scheduled?cron=*+*+*+*+*"
 
-wrangler d1 migrations list xeocast_db --local
-wrangler d1 migrations list xeocast_db --remote
-wrangler d1 migrations list xeocast_db --remote --preview
+wrangler d1 migrations list xeopub_db --local
+wrangler d1 migrations list xeopub_db --remote
+wrangler d1 migrations list xeopub_db --remote --preview
 
-wrangler d1 migrations apply xeocast_db --local
-wrangler d1 migrations apply xeocast_db --remote
-wrangler d1 migrations apply xeocast_db --remote --preview
+wrangler d1 migrations apply xeopub_db --local
+wrangler d1 migrations apply xeopub_db --remote
+wrangler d1 migrations apply xeopub_db --remote --preview
 
 wrangler dev --test-scheduled --persist-to ../web-app/.wrangler/state
 http://localhost:8787/__scheduled?cron=*+*+*+*+*

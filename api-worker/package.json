@@ -1,5 +1,5 @@
 {
-	"name": "api-worker",
+	"name": "dash-api-worker",
 	"scripts": {
 		"dev": "wrangler dev --persist-to ../.wrangler/state",
 		"deploy": "wrangler deploy --minify",

@@ -76,7 +76,7 @@ export const loginHandler = async (c: Context) => {
       httpOnly: true,
       sameSite: 'None',
       secure: true, // Always true for SameSite=None
-      domain: environment === 'production' ? '.xeocast.com' : undefined, // Set domain for production
+      domain: environment === 'production' ? '.xeopub.com' : undefined, // Set domain for production
       maxAge: 60 * 60 * 24, // 1 day in seconds
     });
 
