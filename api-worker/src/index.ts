@@ -67,8 +67,8 @@ app.doc('/doc', {
   openapi: '3.1.0',
   info: {
     version: '1.0.1',
-    title: 'Xeopub Admin API',
-    description: 'API for managing Xeopub post content and users.',
+    title: 'XeoPub Admin API',
+    description: 'API for managing XeoPub post content and users.',
   },
   servers: [
     {
@@ -80,7 +80,7 @@ app.doc('/doc', {
 });
 
 // A simple root message
-app.get('/', (c) => c.text('Xeopub Admin API Worker is running. Visit /doc/ui for documentation.'));
+app.get('/', (c) => c.text('XeoPub Admin API Worker is running. Visit /doc/ui for documentation.'));
 
 // Swagger UI
 app.get('/doc/ui', swaggerUI({ url: '/doc' }));
