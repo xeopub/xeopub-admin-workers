@@ -29,13 +29,7 @@ export const createPostHandler = async (c: Context<{ Bindings: CloudflareEnv }>)
 
   // Check if slug is unique for the given websiteId and seriesId (if seriesId is present)
   try {
-    let slugCheckQuery;
-    if (seriesId) {
-      slugCheckQuery = c.env.DB.prepare('SELECT id FROM posts WHERE slug = ?1 AND website_id = ?2 AND series_id = ?3').bind(slug, websiteId, seriesId);
-    } else {
-      // If no seriesId, check slug uniqueness only within the website (where series_id IS NULL)
-      slugCheckQuery = c.env.DB.prepare('SELECT id FROM posts WHERE slug = ?1 AND website_id = ?2 AND series_id IS NULL').bind(slug, websiteId);
-    }
+    const slugCheckQuery = c.env.DB.prepare('SELECT id FROM posts WHERE slug = ?1 AND website_id = ?2 AND series_id = ?3').bind(slug, websiteId, seriesId);
     const existingPost = await slugCheckQuery.first();
 
     if (existingPost) {
@@ -54,32 +48,21 @@ export const createPostHandler = async (c: Context<{ Bindings: CloudflareEnv }>)
 
   try {
     const statement = c.env.DB.prepare(
-            'INSERT INTO posts (website_id, series_id, title, slug, description, markdown_content, tags, type, first_comment, script, audio_bucket_key, background_bucket_key, background_music_bucket_key, intro_music_bucket_key, video_bucket_key, thumbnail_bucket_key, article_image_bucket_key, thumbnail_gen_prompt, article_image_gen_prompt, scheduled_publish_at, status_on_youtube, status_on_website, status_on_x, freeze_status, status, last_status_change_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, CURRENT_TIMESTAMP)'
+            'INSERT INTO posts (website_id, series_id, title, slug, description, markdown_content, tags, type, featured_image_bucket_key, featured_image_gen_prompt, scheduled_publish_at, status_on_x, freeze_status, status, last_status_change_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, CURRENT_TIMESTAMP)'
     ).bind(
       postData.websiteId,
-      postData.seriesId ?? null,
+      postData.seriesId,
       postData.title,
       postData.slug,
       postData.description,
       postData.markdownContent,
       postData.tags ?? '[]',
       postData.type,
-      postData.firstComment ?? null,
-      postData.script ?? '[]',
-      postData.audioBucketKey ?? null,
-      postData.backgroundBucketKey ?? null,
-      postData.backgroundMusicBucketKey ?? null,
-      postData.introMusicBucketKey ?? null,
-      postData.videoBucketKey ?? null,
-      postData.thumbnailBucketKey ?? null,
-      postData.articleImageBucketKey ?? null,
-      postData.thumbnailGenPrompt ?? null,
-      postData.articleImageGenPrompt ?? null,
+      postData.featuredImageBucketKey ?? null,
+      postData.featuredImageGenPrompt ?? null,
       postData.scheduledPublishAt ?? null,
-      postData.statusOnYoutube ?? null,
-      postData.statusOnWebsite ?? null,
       postData.statusOnX ?? null,
-      postData.freezeStatus === undefined ? 1 : (postData.freezeStatus ? 1 : 0), // Convert boolean to 0/1 for SQLite
+      postData.freezeStatus === undefined ? 1 : (postData.freezeStatus ? 1 : 0),
       postData.status ?? 'draft'
     );
     const result = await statement.run();

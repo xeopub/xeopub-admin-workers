@@ -10,7 +10,7 @@ import postRoutes from './routes/post.routes';
 import whatsNextRoutes from './routes/whats-next.routes';
 import userRoutes from './routes/user.routes';
 import roleRoutes from './routes/role.routes';
-import seriesRoutes from './routes/serie.routes';
+import seriesRoutes from './routes/series.routes';
 import storageRoutes from './routes/storage.routes';
 
 // Import middleware

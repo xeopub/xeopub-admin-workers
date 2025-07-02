@@ -19,10 +19,8 @@ export const PostStatusSchema = z.enum([
   'draft',
   'researching',
   'researched',
-  'generatingMaterial',
-  'materialGenerated',
-  'generatingVideo',
-  'videoGenerated'
+  'generatingAssets',
+  'assetsGenerated'
 ]).openapi({description: 'The current status of the post.', example: 'draft'});
 
 const PostBaseSchema = z.object({
@@ -32,25 +30,14 @@ const PostBaseSchema = z.object({
   markdownContent: z.string().min(1).openapi({ example: '# Welcome\n\nThis is the content.' }),
   tags: z.string().optional().default('[]').openapi({ example: '["tech", "astro"]', description: 'Tags for the post, stored as a string (intended as JSON stringified array).' }),
   type: PostPublicationTypeSchema,
-  firstComment: z.string().max(1000).optional().nullable().openapi({ example: 'Check out our website for more!' }),
-  script: z.string().optional().default('[]').openapi({ example: '[{"speaker": "Host", "line": "Welcome to the website!"}]', description: 'Post script, stored as a string (intended as JSON string).' }),
-  audioBucketKey: z.string().max(255).optional().nullable().openapi({ example: 'posts/audio/post_audio.mp3' }),
-  backgroundBucketKey: z.string().max(255).optional().nullable().openapi({ example: 'posts/backgrounds/background_image.png' }),
-  backgroundMusicBucketKey: z.string().max(255).optional().nullable().openapi({ example: 'posts/music/bg_music.mp3' }),
-  introMusicBucketKey: z.string().max(255).optional().nullable().openapi({ example: 'posts/music/intro_music.mp3' }),
-  videoBucketKey: z.string().max(255).optional().nullable().openapi({ example: 'posts/video/final_video.mp4' }),
-  thumbnailBucketKey: z.string().max(255).optional().nullable().openapi({ example: 'posts/thumbnails/post_thumbnail.png' }),
-  articleImageBucketKey: z.string().max(255).optional().nullable().openapi({ example: 'posts/images/article_image.png' }),
-  thumbnailGenPrompt: z.string().max(2000).optional().nullable().openapi({ example: 'A vibrant image of a microphone with sound waves.' }),
-  articleImageGenPrompt: z.string().max(2000).optional().nullable().openapi({ example: 'A futuristic cityscape representing technology.' }),
+  featuredImageBucketKey: z.string().max(255).optional().nullable().openapi({ example: 'posts/featured/image.png' }),
+  featuredImageGenPrompt: z.string().max(2000).optional().nullable().openapi({ example: 'A vibrant image for the post.' }),
   scheduledPublishAt: z.union([z.string().datetime({ message: "Invalid datetime string. Must be UTC ISO 8601 format." }), z.date()]).optional().nullable().openapi({ example: '2024-12-31T23:59:59Z' }),
-  statusOnYoutube: PostStatusOnPlatformSchema.optional().nullable(),
-  statusOnWebsite: PostStatusOnPlatformSchema.optional().nullable(),
   statusOnX: PostStatusOnPlatformSchema.optional().nullable(),
   freezeStatus: z.boolean().optional().default(true),
   status: PostStatusSchema.default('draft'),
   websiteId: z.number().int().positive(),
-  seriesId: z.number().int().positive().optional().nullable(),
+  seriesId: z.number().int().positive(),
 }).openapi('PostBase');
 
 // Schema for data as it's stored in/retrieved from the database
@@ -70,34 +57,23 @@ export const PostDbSchema = PostBaseSchema.extend({
 const PostOutputObjectSchema = z.object({
   id: z.number().int().positive().openapi({ example: 1 }),
   websiteId: z.number().int().positive().openapi({ example: 1 }),
-  seriesId: z.number().int().positive().optional().nullable().openapi({ example: 1 }),
+  seriesId: z.number().int().positive().openapi({ example: 1 }),
   title: z.string().openapi({ example: 'My First Post' }),
   slug: z.string().openapi({ example: 'my-first-post' }),
   description: z.string().openapi({ example: 'An introduction to the series.' }),
   markdownContent: z.string().openapi({ example: '# Welcome\n\nThis is the content.' }),
   tags: z.string().openapi({ example: '["tech", "astro"]' }), // Kept as string as per user request
   type: PostPublicationTypeSchema,
-  firstComment: z.string().optional().nullable().openapi({ example: 'Check out our website for more!' }),
-  script: z.string().openapi({ example: '[{"speaker": "Host", "line": "Welcome to the website!"}]' }), // Kept as string as per user request
-  audioBucketKey: z.string().optional().nullable().openapi({ example: 'posts/audio/post_audio.mp3' }),
-  backgroundBucketKey: z.string().optional().nullable().openapi({ example: 'posts/backgrounds/background_image.png' }),
-  backgroundMusicBucketKey: z.string().optional().nullable().openapi({ example: 'posts/music/bg_music.mp3' }),
-  introMusicBucketKey: z.string().optional().nullable().openapi({ example: 'posts/music/intro_music.mp3' }),
-  videoBucketKey: z.string().optional().nullable().openapi({ example: 'posts/video/final_video.mp4' }),
-  thumbnailBucketKey: z.string().optional().nullable().openapi({ example: 'posts/thumbnails/post_thumbnail.png' }),
-  articleImageBucketKey: z.string().optional().nullable().openapi({ example: 'posts/images/article_image.png' }),
-  thumbnailGenPrompt: z.string().optional().nullable().openapi({ example: 'A vibrant image of a microphone with sound waves.' }),
-  articleImageGenPrompt: z.string().optional().nullable().openapi({ example: 'A futuristic cityscape representing technology.' }),
+  featuredImageBucketKey: z.string().optional().nullable().openapi({ example: 'posts/featured/image.png' }),
+  featuredImageGenPrompt: z.string().optional().nullable().openapi({ example: 'A vibrant image for the post.' }),
   scheduledPublishAt: z.date().optional().nullable().openapi({ example: '2024-12-31T23:59:59Z' }),
-  statusOnYoutube: PostStatusOnPlatformSchema.optional().nullable(),
-  statusOnWebsite: PostStatusOnPlatformSchema.optional().nullable(),
   statusOnX: PostStatusOnPlatformSchema.optional().nullable(),
   freezeStatus: z.boolean(),
   status: PostStatusSchema,
   lastStatusChangeAt: z.date().openapi({ example: '2023-01-01T12:05:00Z' }),
   createdAt: z.date().openapi({ example: '2023-01-01T12:00:00Z' }),
   updatedAt: z.date().openapi({ example: '2023-01-01T12:10:00Z' }),
-});
+}).openapi('PostOutput');
 
 // Schema for API responses (transforms DB data, e.g., coerces dates)
 export const PostSchema = PostDbSchema.transform(dbData => {
@@ -126,26 +102,14 @@ export const PostSchema = PostDbSchema.transform(dbData => {
     markdownContent: dbData.markdownContent,
     tags: dbData.tags, // Kept as string
     type: dbData.type,
-    firstComment: dbData.firstComment,
-    script: dbData.script, // Kept as string
-    audioBucketKey: dbData.audioBucketKey,
-    backgroundBucketKey: dbData.backgroundBucketKey,
-    backgroundMusicBucketKey: dbData.backgroundMusicBucketKey,
-    introMusicBucketKey: dbData.introMusicBucketKey,
-    videoBucketKey: dbData.videoBucketKey,
-    thumbnailBucketKey: dbData.thumbnailBucketKey,
-    articleImageBucketKey: dbData.articleImageBucketKey,
-    thumbnailGenPrompt: dbData.thumbnailGenPrompt,
-    articleImageGenPrompt: dbData.articleImageGenPrompt,
-    statusOnYoutube: dbData.statusOnYoutube,
-    statusOnWebsite: dbData.statusOnWebsite,
+    featuredImageBucketKey: dbData.featuredImageBucketKey,
+    featuredImageGenPrompt: dbData.featuredImageGenPrompt,
     statusOnX: dbData.statusOnX,
     status: dbData.status,
-    
     // Transformed fields
-    lastStatusChangeAt: processDate(dbData.lastStatusChangeAt) as Date, // Cast as Date because it's non-nullable in output
-    createdAt: processDate(dbData.createdAt) as Date, // Cast as Date
-    updatedAt: processDate(dbData.updatedAt) as Date, // Cast as Date
+    lastStatusChangeAt: new Date(dbData.lastStatusChangeAt), // Non-nullable in DB
+    createdAt: new Date(dbData.createdAt), // Non-nullable in DB
+    updatedAt: new Date(dbData.updatedAt), // Non-nullable in DB
     scheduledPublishAt: processDate(dbData.scheduledPublishAt),
     freezeStatus: Boolean(dbData.freezeStatus),
   };
@@ -181,6 +145,8 @@ export const PostListItemSchema = PostOutputObjectSchema.pick({
   freezeStatus: true,
   updatedAt: true,
   createdAt: true,
+  featuredImageBucketKey: true,
+  featuredImageGenPrompt: true,
 }).openapi('PostListItem');
 
 // Enum for sortable fields
@@ -193,7 +159,9 @@ export const PostSortBySchema = z.enum([
   'seriesId',
   'scheduledPublishAt',
   'createdAt',
-  'updatedAt'
+  'updatedAt',
+  'featuredImageBucketKey',
+  'featuredImageGenPrompt'
 ]).openapi({ description: 'Field to sort posts by.', example: 'createdAt' });
 
 // Enum for sort order
@@ -205,6 +173,8 @@ export const ListPostsQuerySchema = z.object({
     status: PostStatusSchema.optional(),
     websiteId: z.string().optional().transform(val => val ? parseInt(val, 10) : undefined).refine(val => val === undefined || val > 0, { message: 'Website ID must be positive' }),
     seriesId: z.string().optional().transform(val => val ? parseInt(val, 10) : undefined).refine(val => val === undefined || val > 0, { message: 'Series ID must be positive' }),
+    featuredImageBucketKey: z.string().optional(),
+    featuredImageGenPrompt: z.string().optional(),
     title: z.string().optional(),
     type: PostPublicationTypeSchema.optional(),
     sortBy: PostSortBySchema.optional().default('createdAt'),

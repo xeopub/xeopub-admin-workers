@@ -63,8 +63,8 @@
 	 */
 	"vars": {
 		"ENVIRONMENT": "production",
-		"R2_S3_ENDPOINT": "https://4b41e74071e41303184f5e7378a65507.r2.cloudflarestorage.com",
-		"R2_ACCESS_KEY_ID": "181583050d189a4737c3a5af12a67a48",
+		"R2_S3_ENDPOINT": "https://a4a35a367b8da2addaaf512ce3e2d4bd.r2.cloudflarestorage.com",
+		"R2_ACCESS_KEY_ID": "d30b9732d501262b4baddfd31e0c2b65",
 		"R2_REGION": "auto",
 		"POST_PROJECTS_BUCKET_NAME": "post-projects",
 		"DEFAULT_FILES_BUCKET_NAME": "default-files"

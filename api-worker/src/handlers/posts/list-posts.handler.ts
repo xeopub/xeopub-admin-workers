@@ -26,7 +26,7 @@ export const listPostsHandler = async (c: Context<{ Bindings: CloudflareEnv }>) 
     }), 400);
   }
 
-  const { page, limit, status, websiteId, seriesId, title, type, sortBy, sortOrder } = queryParseResult.data;
+  const { page, limit, status, websiteId, seriesId, title, type, sortBy, sortOrder, featuredImageBucketKey, featuredImageGenPrompt } = queryParseResult.data;
   const offset = (page - 1) * limit;
 
   let whereClauses: string[] = [];
@@ -53,6 +53,14 @@ export const listPostsHandler = async (c: Context<{ Bindings: CloudflareEnv }>) 
     whereClauses.push(`type = ?${paramIndex++}`);
     bindings.push(type);
   }
+  if (featuredImageBucketKey) {
+    whereClauses.push(`featured_image_bucket_key = ?${paramIndex++}`);
+    bindings.push(featuredImageBucketKey);
+  }
+  if (featuredImageGenPrompt) {
+    whereClauses.push(`featured_image_gen_prompt = ?${paramIndex++}`);
+    bindings.push(featuredImageGenPrompt);
+  }
 
   const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
@@ -66,6 +74,8 @@ export const listPostsHandler = async (c: Context<{ Bindings: CloudflareEnv }>) 
     scheduledPublishAt: 'scheduled_publish_at',
     createdAt: 'created_at',
     updatedAt: 'updated_at',
+    featuredImageBucketKey: 'featured_image_bucket_key',
+    featuredImageGenPrompt: 'featured_image_gen_prompt',
   };
 
   const orderByColumn = validSortColumns[sortBy] || 'created_at';
@@ -78,10 +88,8 @@ export const listPostsHandler = async (c: Context<{ Bindings: CloudflareEnv }>) 
       `SELECT 
         id, title, slug, description, markdown_content, website_id, series_id, status, 
         scheduled_publish_at, last_status_change_at, type, tags, created_at, updated_at, 
-        audio_bucket_key, background_bucket_key, background_music_bucket_key, intro_music_bucket_key, 
-        video_bucket_key, thumbnail_bucket_key, article_image_bucket_key,
-        script, thumbnail_gen_prompt, article_image_gen_prompt,
-        status_on_youtube, status_on_website, status_on_x, freeze_status, first_comment
+        featured_image_bucket_key, featured_image_gen_prompt,
+        status_on_x, freeze_status
       FROM posts ${whereString} ${orderByString} LIMIT ?${paramIndex++} OFFSET ?${paramIndex++}`
     ).bind(...bindings, limit, offset);
     

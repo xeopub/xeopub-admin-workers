@@ -40,9 +40,9 @@ export const updatePostHandler = async (c: Context<{ Bindings: CloudflareEnv }>)
 
   try {
     // Fetch the current post to get website_id and series_id if slug or title is being updated
-    const currentPost = await c.env.DB.prepare('SELECT slug, title, website_id, series_id FROM posts WHERE id = ?1')
+    const currentPost = await c.env.DB.prepare('SELECT slug, title, website_id, series_id, featured_image_bucket_key, featured_image_gen_prompt FROM posts WHERE id = ?1')
       .bind(id)
-      .first<{ slug: string; title: string; website_id: number; series_id: number | null }>();
+      .first<{ slug: string; title: string; website_id: number; series_id: number; featured_image_bucket_key: string | null; featured_image_gen_prompt: string | null }>();
 
     if (!currentPost) {
       return c.json(PostNotFoundErrorSchema.parse({ message: 'Post not found.' }), 404);
@@ -63,13 +63,8 @@ export const updatePostHandler = async (c: Context<{ Bindings: CloudflareEnv }>)
       const targetWebsiteId = updates.websiteId ?? currentPost.website_id;
       const targetSeriesId = updates.seriesId !== undefined ? updates.seriesId : currentPost.series_id;
 
-      if (targetSeriesId) {
         slugCheckQuery = c.env.DB.prepare('SELECT id FROM posts WHERE slug = ?1 AND website_id = ?2 AND series_id = ?3 AND id != ?4')
           .bind(newSlug, targetWebsiteId, targetSeriesId, id);
-      } else {
-        slugCheckQuery = c.env.DB.prepare('SELECT id FROM posts WHERE slug = ?1 AND website_id = ?2 AND series_id IS NULL AND id != ?3')
-          .bind(newSlug, targetWebsiteId, id);
-      }
       const existingPostWithSlug = await slugCheckQuery.first();
       if (existingPostWithSlug) {
         return c.json(PostSlugExistsErrorSchema.parse({

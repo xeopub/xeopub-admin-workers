@@ -23,10 +23,8 @@ export const getPostByIdHandler = async (c: Context<{ Bindings: CloudflareEnv }>
       `SELECT 
         id, title, slug, description, markdown_content, website_id, series_id, status, 
         scheduled_publish_at, last_status_change_at, type, tags, created_at, updated_at, 
-        audio_bucket_key, background_bucket_key, background_music_bucket_key, intro_music_bucket_key, 
-        video_bucket_key, thumbnail_bucket_key, article_image_bucket_key,
-        script, thumbnail_gen_prompt, article_image_gen_prompt,
-        status_on_youtube, status_on_website, status_on_x, freeze_status, first_comment
+        featured_image_bucket_key, featured_image_gen_prompt,
+        status_on_x, freeze_status
       FROM posts WHERE id = ?1`
     ).bind(id).first<any>();
 
