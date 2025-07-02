@@ -53,49 +53,39 @@ export const createWebsiteHandler = async (c: Context<{ Bindings: CloudflareEnv 
     // Insert new website
     const stmt = c.env.DB.prepare(
       `INSERT INTO websites (
-        name, slug, description, slogan, custom_url,
-        default_post_background_bucket_key, default_post_thumbnail_bucket_key,
-        default_post_background_music_bucket_key, default_post_intro_music_bucket_key,
-        first_comment_template,
+        name, slug, description, slogan, domain,
         prompt_template_to_gen_evergreen_titles, prompt_template_to_gen_news_titles,
-        prompt_template_to_gen_series_titles, prompt_template_to_gen_article_content,
-        prompt_template_to_gen_article_metadata, prompt_template_to_gen_post_script,
-        prompt_template_to_gen_post_background, prompt_template_to_gen_post_audio,
-        prompt_template_to_gen_post_background_music, prompt_template_to_gen_post_intro_music,
+        prompt_template_to_gen_series_titles, prompt_template_to_gen_post_content,
+        prompt_template_to_enrich_post_content, prompt_template_to_gen_post_metadata,
+        builder, git_repo_owner, git_repo_name, git_repo_branch, git_api_token,
         config, language_code
-      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22)`
+      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)`
     ).bind(
       websiteData.name,                                  // 1
       slug,                                           // 2 (potentially modified)
       websiteData.description,                           // 3
       websiteData.slogan,                                // 4
-      websiteData.customUrl,                            // 5
-      websiteData.defaultPostBackgroundBucketKey, // 6
-      websiteData.defaultPostThumbnailBucketKey,  // 7
-      websiteData.defaultPostBackgroundMusicBucketKey, // 8
-      websiteData.defaultPostIntroMusicBucketKey,    // 9
-      websiteData.firstCommentTemplate,                // 10
-      websiteData.promptTemplateToGenEvergreenTitles, // 11
-      websiteData.promptTemplateToGenNewsTitles,    // 12
-      websiteData.promptTemplateToGenSeriesTitles,  // 13
-      websiteData.promptTemplateToGenArticleContent,// 14
-      websiteData.promptTemplateToGenArticleMetadata, // 15
-      websiteData.promptTemplateToGenPostScript, // 16
-      websiteData.promptTemplateToGenPostBackground, // 17
-      websiteData.promptTemplateToGenPostAudio,  // 18
-      websiteData.promptTemplateToGenPostBackgroundMusic, // 19
-      websiteData.promptTemplateToGenPostIntroMusic,    // 20
-      websiteData.config,                                // 21
-      websiteData.languageCode                          // 22
+      websiteData.domain,                                // 5
+      websiteData.promptTemplateToGenEvergreenTitles, // 6
+      websiteData.promptTemplateToGenNewsTitles,    // 7
+      websiteData.promptTemplateToGenSeriesTitles,  // 8
+      websiteData.promptTemplateToGenPostContent,   // 9
+      websiteData.promptTemplateToEnrichPostContent, // 10
+      websiteData.promptTemplateToGenPostMetadata,  // 11
+      websiteData.builder,                              // 12
+      websiteData.gitRepoOwner,                         // 13
+      websiteData.gitRepoName,                          // 14
+      websiteData.gitRepoBranch,                        // 15
+      websiteData.gitApiToken,                          // 16
+      websiteData.config,                                // 17
+      websiteData.languageCode                          // 18
     );
     
     const result = await stmt.run();
 
     if (result.success && result.meta.last_row_id) {
       return c.json(WebsiteCreateResponseSchema.parse({
-        
         message: 'Website created successfully.',
-        id: result.meta.last_row_id
       }), 201);
     } else {
       console.error('Failed to insert website, D1 result:', result);

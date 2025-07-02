@@ -22,15 +22,11 @@ export const getWebsiteByIdHandler = async (c: Context<{ Bindings: CloudflareEnv
   try {
     const websiteRaw = await c.env.DB.prepare(
       `SELECT 
-        id, name, slug, description, slogan, custom_url,
-        default_post_background_bucket_key, default_post_thumbnail_bucket_key,
-        default_post_background_music_bucket_key, default_post_intro_music_bucket_key,
-        first_comment_template,
+        id, name, slug, description, slogan, domain,
         prompt_template_to_gen_evergreen_titles, prompt_template_to_gen_news_titles,
-        prompt_template_to_gen_series_titles, prompt_template_to_gen_article_content,
-        prompt_template_to_gen_article_metadata, prompt_template_to_gen_post_script,
-        prompt_template_to_gen_post_background, prompt_template_to_gen_post_audio,
-        prompt_template_to_gen_post_background_music, prompt_template_to_gen_post_intro_music,
+        prompt_template_to_gen_series_titles, prompt_template_to_gen_post_content,
+        prompt_template_to_enrich_post_content, prompt_template_to_gen_post_metadata,
+        builder, git_repo_owner, git_repo_name, git_repo_branch, git_api_token,
         config, language_code,
         created_at, updated_at
       FROM websites WHERE id = ?1`

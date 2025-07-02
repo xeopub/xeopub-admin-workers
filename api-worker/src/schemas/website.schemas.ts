@@ -12,22 +12,18 @@ const WebsiteBaseSchema = z.object({
   slug: z.string().max(255).optional().openapi({ example: 'technology-updates', description: 'The URL-friendly slug for the website. Auto-generated if not provided.' }),
   description: z.string().max(5000).openapi({ example: 'Latest news and discussions in the tech world.' }),
   slogan: z.string().max(500).openapi({ example: 'Your daily dose of tech insights.' }),
-  customUrl: z.string().max(255).openapi({ example: 'tech-unfiltered-website' }),
-  defaultPostBackgroundBucketKey: z.string().openapi({ example: 'defaults/website_post_bg.mp4' }),
-  defaultPostThumbnailBucketKey: z.string().openapi({ example: 'defaults/website_post_thumb.png' }),
-  defaultPostBackgroundMusicBucketKey: z.string().openapi({ example: 'defaults/website_music_bg.mp3' }),
-  defaultPostIntroMusicBucketKey: z.string().openapi({ example: 'defaults/website_music_intro.mp3' }),
-  firstCommentTemplate: z.string().openapi({ example: 'Check out our latest website post on {topic}!' }),
+  domain: z.string().max(255).openapi({ example: 'tech-unfiltered-website.com' }),
   promptTemplateToGenEvergreenTitles: z.string().openapi({ example: 'Generate an evergreen title about {topic} for this website.' }),
   promptTemplateToGenNewsTitles: z.string().openapi({ example: 'Create a news title for a recent event: {event_summary} for this website.' }),
   promptTemplateToGenSeriesTitles: z.string().openapi({ example: 'Suggest a series title for an post about {series_theme} in this website.' }),
-  promptTemplateToGenArticleContent: z.string().openapi({ example: 'Write an article about {topic} focusing on {aspect} for this website.' }),
-  promptTemplateToGenArticleMetadata: z.string().openapi({ example: 'Generate detailed article metadata for an post about {post_topic} for this website.' }),
-  promptTemplateToGenPostScript: z.string().openapi({ example: 'Create an post script for an post on {post_topic} for this website.' }),
-  promptTemplateToGenPostBackground: z.string().openapi({ example: 'Describe an post background for an post about {post_topic} for this website.' }),
-  promptTemplateToGenPostAudio: z.string().openapi({ example: 'Draft a script segment for an audio post discussing {segment_topic} for this website.' }),
-  promptTemplateToGenPostBackgroundMusic: z.string().openapi({ example: 'Suggest background music for an post about {post_topic} for this website.' }),
-  promptTemplateToGenPostIntroMusic: z.string().openapi({ example: 'Suggest intro music for an post on {post_topic} for this website.' }),
+  promptTemplateToGenPostContent: z.string().openapi({ example: 'Write an article about {topic} focusing on {aspect} for this website.' }),
+  promptTemplateToEnrichPostContent: z.string().openapi({ example: 'Enrich the following post content: {content}' }),
+  promptTemplateToGenPostMetadata: z.string().openapi({ example: 'Generate detailed article metadata for an post about {post_topic} for this website.' }),
+  builder: z.string().max(255).openapi({ example: 'hugo' }),
+  gitRepoOwner: z.string().max(255).openapi({ example: 'xeopub' }),
+  gitRepoName: z.string().max(255).openapi({ example: 'my-website-repo' }),
+  gitRepoBranch: z.string().max(255).openapi({ example: 'main' }),
+  gitApiToken: z.string().max(255).openapi({ example: 'ghp_YOUR_TOKEN_HERE' }),
   config: z.string().refine(
     (val) => {
       try {
@@ -52,13 +48,13 @@ export const WebsiteCreateRequestSchema = WebsiteBaseSchema;
 
 export const WebsiteCreateResponseSchema = MessageResponseSchema.extend({
   message: z.literal('Website created successfully.'),
-  id: z.number().int().positive().openapi({ example: 123 }),
 }).openapi('WebsiteCreateResponse');
 
 export const WebsiteSummarySchema = z.object({
   id: z.number().int().positive().openapi({ example: 1 }),
   name: z.string().openapi({ example: 'Technology Updates' }),
   slug: z.string().optional().openapi({ example: 'technology-updates' }),
+  domain: z.string().openapi({ example: 'tech-unfiltered-website.com' }),
   languageCode: z.string().length(2).openapi({ example: 'en' }),
 }).openapi('WebsiteSummary');
 
@@ -110,7 +106,7 @@ export const GetWebsiteResponseSchema = z.object({
 export const WebsiteUpdateRequestSchema = WebsiteBaseSchema.partial().openapi('WebsiteUpdateRequest');
 
 export const WebsiteUpdateResponseSchema = MessageResponseSchema.extend({
-    // The 'message' field will now be inherited from MessageResponseSchema (z.string())
+    message: z.literal('Website updated successfully.'),
 }).openapi('WebsiteUpdateResponse');
 
 export const WebsiteDeleteResponseSchema = MessageResponseSchema.extend({

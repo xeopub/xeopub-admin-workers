@@ -53,7 +53,7 @@ export const listWebsitesHandler = async (c: Context<{ Bindings: CloudflareEnv }
 
   try {
     const websitesQuery = c.env.DB.prepare(
-      `SELECT id, name, language_code, slug FROM websites ${whereString} ${orderByString} LIMIT ?${paramIndex++} OFFSET ?${paramIndex++}`
+      `SELECT id, name, slug, domain, language_code FROM websites ${whereString} ${orderByString} LIMIT ?${paramIndex++} OFFSET ?${paramIndex++}`
     ).bind(...bindings, limit, offset);
     
     const countQuery = c.env.DB.prepare(

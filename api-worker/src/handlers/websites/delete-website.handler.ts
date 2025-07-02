@@ -34,11 +34,7 @@ export const deleteWebsiteHandler = async (c: Context<{ Bindings: CloudflareEnv 
       return c.json(WebsiteDeleteFailedErrorSchema.parse({ message: 'Cannot delete website: It is referenced by existing series.' }), 400);
     }
     
-    // Check for dependencies: youtube_channels
-    const dependentYouTubeChannels = await c.env.DB.prepare('SELECT id FROM youtube_channels WHERE website_id = ?1 LIMIT 1').bind(id).first<{ id: number }>();
-    if (dependentYouTubeChannels) {
-        return c.json(WebsiteDeleteFailedErrorSchema.parse({ message: 'Cannot delete website: It is referenced by existing YouTube channels.' }), 400);
-    }
+
 
     const stmt = c.env.DB.prepare('DELETE FROM websites WHERE id = ?1').bind(id);
     const result = await stmt.run();
