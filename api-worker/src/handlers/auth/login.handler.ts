@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { setCookie } from 'hono/cookie';
 import bcrypt from 'bcryptjs'; // For password hashing, as in old code
 // crypto.randomUUID() will be used for session tokens, no specific import needed.
-import { LoginRequestSchema } from '../../schemas/authSchemas';
+import { LoginRequestSchema } from '../../schemas/auth.schemas';
 
 // Define types for DB results
 interface UserRecord {
@@ -27,7 +27,7 @@ export const loginHandler = async (c: Context) => {
   if (!validationResult.success) {
     console.error('Login validation error:', validationResult.error.flatten());
     // Corresponds to LoginMissingFieldsErrorSchema
-    return c.json({ success: false, error: 'missing' as const, message: 'Email and password are required.' as const }, 400);
+    return c.json({ error: 'missing' as const, message: 'Email and password are required.' as const }, 400);
   }
 
   const { email, password } = validationResult.data;
@@ -42,7 +42,7 @@ export const loginHandler = async (c: Context) => {
     if (!userResult) {
       console.error(`User not found for email: ${email}`);
       // Corresponds to LoginUserNotFoundErrorSchema
-      return c.json({ success: false, error: 'invalid' as const, message: 'Invalid user or password.' as const }, 401);
+      return c.json({ error: 'invalid' as const, message: 'Invalid user or password.' as const }, 401);
     }
 
     // Step 2: Verify password
@@ -50,7 +50,7 @@ export const loginHandler = async (c: Context) => {
     if (!validPassword) {
       console.error(`Password validation failed for user: ${userResult.email}`);
       // Corresponds to LoginInvalidPasswordErrorSchema
-      return c.json({ success: false, error: 'invalid' as const, message: 'Invalid user or password.' as const }, 401);
+      return c.json({ error: 'invalid' as const, message: 'Invalid user or password.' as const }, 401);
     }
 
     // Step 3: Fetch user role
@@ -60,7 +60,7 @@ export const loginHandler = async (c: Context) => {
     if (!roleResult || !roleResult.role) {
       console.error(`Role not found for user ID: ${userResult.id}`);
       // Corresponds to LoginRoleConfigErrorSchema (mapped to 401 in auth.ts for login route)
-      return c.json({ success: false, error: 'authentication_failed' as const, message: 'User role configuration error.' as const }, 401);
+      return c.json({ error: 'authentication_failed' as const, message: 'User role configuration error.' as const }, 401);
     }
 
     // Step 4: Create session
@@ -81,11 +81,11 @@ export const loginHandler = async (c: Context) => {
     });
 
     // Corresponds to LoginSuccessResponseSchema
-    return c.json({ success: true }, 200);
+    return c.json({}, 200);
 
   } catch (e: any) {
     console.error("Error during login process:", e);
     // Corresponds to LoginInternalErrorSchema
-    return c.json({ success: false, error: 'authentication_failed' as const, message: 'An internal error occurred during login.' as const }, 500);
+    return c.json({ error: 'authentication_failed' as const, message: 'An internal error occurred during login.' as const }, 500);
   }
 };

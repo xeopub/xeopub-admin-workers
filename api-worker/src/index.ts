@@ -4,14 +4,14 @@ import { cors } from 'hono/cors';
 import { swaggerUI } from '@hono/swagger-ui';
 
 // Import routes
-import authRoutes from './routes/auth';
-import websiteRoutes from './routes/websites';
-import postRoutes from './routes/posts';
-import userRoutes from './routes/users';
-import roleRoutes from './routes/roles';
-import seriesRoutes from './routes/series';
-import storageRoutes from './routes/storage';
-import heavyComputeApiRoutes from './routes/heavyComputeApi';
+import authRoutes from './routes/auth.routes';
+import websiteRoutes from './routes/website.routes';
+import postRoutes from './routes/post.routes';
+import whatsNextRoutes from './routes/whats-next.routes';
+import userRoutes from './routes/user.routes';
+import roleRoutes from './routes/role.routes';
+import seriesRoutes from './routes/serie.routes';
+import storageRoutes from './routes/storage.routes';
 
 // Import middleware
 import { ensureAuth } from './middlewares/auth.middleware';
@@ -23,7 +23,7 @@ const authMiddleware = ensureAuth(); // ensure authMiddleware is defined before 
 app.use('*', (c, next) => {
   const middleware = cors({
     origin: (origin) => {
-      const allowedDevelopmentOrigin = 'http://localhost:8081';
+      const allowedDevelopmentOrigin = 'http://localhost:8080';
       const allowedProductionOrigin = 'https://dash.xeopub.com';
 
       if (c.env.ENVIRONMENT === 'production') {
@@ -50,8 +50,8 @@ app.use('/posts/*', authMiddleware);
 app.use('/users/*', authMiddleware);
 app.use('/roles/*', authMiddleware);
 app.use('/series/*', authMiddleware);
+app.use('/whats-next/*', authMiddleware);
 app.use('/storage/*', authMiddleware);
-app.use('/heavy-compute-api/*', authMiddleware);
 
 // Mount protected routes
 app.route('/websites', websiteRoutes);
@@ -59,8 +59,8 @@ app.route('/posts', postRoutes);
 app.route('/users', userRoutes);
 app.route('/roles', roleRoutes);
 app.route('/series', seriesRoutes);
+app.route('/whats-next', whatsNextRoutes);
 app.route('/storage', storageRoutes);
-app.route('/heavy-compute-api', heavyComputeApiRoutes);
 
 // OpenAPI Documentation
 app.doc('/doc', {
@@ -80,10 +80,10 @@ app.doc('/doc', {
 });
 
 // A simple root message
-app.get('/', (c) => c.text('XeoPub Admin API Worker is running. Visit /doc/ui for documentation.'));
+app.get('/', (c) => c.text('XeoPub Admin API Worker is running. Visit /api/ui for documentation.'));
 
 // Swagger UI
-app.get('/doc/ui', swaggerUI({ url: '/doc' }));
+app.get('/doc/ui', swaggerUI({ url: '/doc', title: 'XeoPub Dash API | Swagger UI' }));
 
 export default app;
 

@@ -1,6 +1,6 @@
 // /Users/fabian/Documents/CodeProjects/github.com/xeopub/xeopub-admin-workers/api-worker/src/middlewares/auth.middleware.ts
 import { MiddlewareHandler, Context, Next } from 'hono';
-import { getCookie } from 'hono/cookie';
+import { getCookie, setCookie } from 'hono/cookie';
 import { HTTPException } from 'hono/http-exception';
 
 // This assumes CloudflareBindings is globally available or correctly inferred by Hono.
@@ -45,6 +45,24 @@ export const ensureAuth = (): MiddlewareHandler<{ Bindings: CloudflareBindings }
 
       // Session is valid. You can set user information in the context if needed by other handlers.
       // For example: c.set('userId', sessionResult.user_id);
+
+      // Renew session (sliding session)
+      const sessionDurationMs = 60 * 60 * 24 * 1000; // 1 day in milliseconds
+      const newExpiresAt = new Date(Date.now() + sessionDurationMs);
+
+      const updateSessionStmt = db.prepare('UPDATE user_sessions SET expires_at = ? WHERE session_token = ?');
+      await updateSessionStmt.bind(newExpiresAt.toISOString(), sessionToken).run();
+
+      // Reset cookie with new expiration
+      const environment = (c.env.ENVIRONMENT as string) || 'development';
+      setCookie(c, 'session_token', sessionToken, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'None',
+        secure: true, // Always true for SameSite=None
+        domain: environment === 'production' ? '.xeopub.com' : undefined,
+        maxAge: sessionDurationMs / 1000, // maxAge is in seconds
+      });
 
       await next();
     } catch (error: any) {

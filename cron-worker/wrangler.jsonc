@@ -32,7 +32,7 @@
 		{
 			"binding": "DB",
 			"database_name": "xeopub_db",
-			"database_id": "6825b51f-ff26-450b-8068-9c241e0a2d62",			
+			"database_id": "ac7ccd2c-c408-498c-ab97-d47be2082e29",			
 			"migrations_dir": "../migrations"
 		}
 	 ],

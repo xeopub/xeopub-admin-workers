@@ -6,12 +6,8 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "dash-api-worker",
 	"main": "src/index.ts",
-	"compatibility_date": "2025-06-10",
+	"compatibility_date": "2025-05-22",
 	"account_id": "a4a35a367b8da2addaaf512ce3e2d4bd",
-	"assets": {
-		"binding": "ASSETS",
-		"directory": "./public"
-	},
 	"observability": {
 		"enabled": true
 	},
@@ -20,7 +16,7 @@
 	 * Routes allow you to map a URL pattern to your Worker.
 	 * Docs: https://developers.cloudflare.com/workers/configuration/routes/
 	 */
-	 "routes": [
+	"routes": [
 		{
 			"pattern": "dash-api.xeopub.com",
 			"custom_domain": true
@@ -28,6 +24,7 @@
 	],
 	/**
 	 * Smart Placement
+	 * Smart Placement automatically places your Worker on the edge to provide the best performance for your users.
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
 	 */
 	// "placement": { "mode": "smart" },
@@ -42,7 +39,7 @@
 		{
 			"binding": "DB",
 			"database_name": "xeopub_db",
-			"database_id": "2bb7bde5-fd8e-4dee-8a67-46b4a5f332d5",			
+			"database_id": "ac7ccd2c-c408-498c-ab97-d47be2082e29",			
 			"migrations_dir": "../migrations"
 		}
 	 ],
@@ -60,11 +57,17 @@
 	],
 
 	/**
-	 * Environment Variables (production values)
+	 * Environment Variables
+	 * Environment variables allow you to store values that are used in your Worker.
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
-	 "vars": {
+	"vars": {
 		"ENVIRONMENT": "production",
+		"R2_S3_ENDPOINT": "https://4b41e74071e41303184f5e7378a65507.r2.cloudflarestorage.com",
+		"R2_ACCESS_KEY_ID": "181583050d189a4737c3a5af12a67a48",
+		"R2_REGION": "auto",
+		"POST_PROJECTS_BUCKET_NAME": "post-projects",
+		"DEFAULT_FILES_BUCKET_NAME": "default-files"
 	},
 	/**
 	 * Note: Use secrets to store sensitive data.
@@ -73,12 +76,14 @@
 
 	/**
 	 * Static Assets
+	 * Static Assets allow you to serve static files from your Worker.
 	 * https://developers.cloudflare.com/workers/static-assets/binding/
 	 */
-	// "assets": { "directory": "./public/", "binding": "ASSETS" },
+	"assets": { "directory": "./public/", "binding": "ASSETS" },
 
 	/**
 	 * Service Bindings (communicate between multiple Workers)
+	 * Service Bindings allow you to communicate between multiple Workers.
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
 	 */
 	// "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]

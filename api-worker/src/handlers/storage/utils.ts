@@ -1,6 +1,6 @@
 // src/handlers/storage/utils.ts
 import { z } from 'zod';
-import { R2BucketNameSchema } from '../../schemas/storageSchemas';
+import { R2BucketNameSchema } from '../../schemas/storage.schemas';
 // Assuming R2Bucket type is globally available or defined in a .d.ts file
 
 export function getR2Bucket(c: any, logicalBucketName: z.infer<typeof R2BucketNameSchema>): R2Bucket | null {

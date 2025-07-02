@@ -79,9 +79,9 @@ CREATE TABLE IF NOT EXISTS websites (
     prompt_template_to_gen_evergreen_titles TEXT NOT NULL,
     prompt_template_to_gen_news_titles TEXT NOT NULL,
     prompt_template_to_gen_series_titles TEXT NOT NULL,
-    prompt_template_to_gen_article_content TEXT NOT NULL,
-    prompt_template_to_enrich_article_content TEXT NOT NULL,
-    prompt_template_to_gen_article_metadata TEXT NOT NULL,
+    prompt_template_to_gen_post_content TEXT NOT NULL,
+    prompt_template_to_enrich_post_content TEXT NOT NULL,
+    prompt_template_to_gen_post_metadata TEXT NOT NULL,
     builder TEXT NOT NULL,
     git_repo_owner TEXT NOT NULL,
     git_repo_name TEXT NOT NULL,
@@ -114,15 +114,13 @@ CREATE TABLE IF NOT EXISTS posts (
     markdown_content TEXT NOT NULL,
     tags TEXT DEFAULT '[]' CHECK (json_valid(tags)),
     type TEXT NOT NULL CHECK (type IN ('evergreen', 'news')),
-    first_comment TEXT,
-    script TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(script)),
     featured_image_bucket_key TEXT,
-    article_image_gen_prompt TEXT,
+    featured_image_gen_prompt TEXT,
     scheduled_publish_at DATETIME,
     status_on_x TEXT CHECK (status_on_x IN ('none', 'scheduled', 'public', 'private', 'deleted')),
-    freezeStatus BOOLEAN DEFAULT TRUE,
+    freeze_status BOOLEAN DEFAULT TRUE,
     status TEXT NOT NULL CHECK (status IN (
-        'draft', 'researching', 'researched', 'generatingMaterial', 'materialGenerated', 'generatingVideo', 'videoGenerated'
+        'draft', 'researching', 'researched', 'generatingAssets', 'assetsGenerated'
     )),
     last_status_change_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -132,13 +130,14 @@ CREATE TABLE IF NOT EXISTS posts (
 );
 
 -- Indexes for posts table
-CREATE INDEX IF NOT EXISTS idx_posts_status_freeze_sched_created ON posts (status, freezeStatus, scheduled_publish_at, updated_at);
+CREATE INDEX IF NOT EXISTS idx_posts_status_freeze_sched_created ON posts (status, freeze_status, scheduled_publish_at, updated_at);
 CREATE INDEX IF NOT EXISTS idx_posts_category_id ON posts (website_id);
 
 CREATE TABLE IF NOT EXISTS post_assets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     post_id INTEGER NOT NULL,
-    r2_bucket_key TEXT NOT NULL,
+    bucket_key TEXT NOT NULL,
+    prompt TEXT NOT NULL,
     mime_type TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -146,7 +145,7 @@ CREATE TABLE IF NOT EXISTS post_assets (
 );
 
 CREATE INDEX IF NOT EXISTS idx_post_assets_post_id ON post_assets (post_id);
-CREATE INDEX IF NOT EXISTS idx_post_assets_r2_bucket_key ON post_assets (r2_bucket_key);
+CREATE INDEX IF NOT EXISTS idx_post_assets_bucket_key ON post_assets (bucket_key);
 
 CREATE TABLE IF NOT EXISTS post_cron_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -25,5 +25,5 @@ export const logoutHandler = async (c: Context) => {
   deleteCookie(c, 'session_token', { path: '/' });
   console.log('Session cookie deleted.');
 
-  return c.json({ success: true, message: 'Logged out successfully.' as const }, 200);
+  return c.json({ message: 'Logged out successfully.' as const }, 200);
 };

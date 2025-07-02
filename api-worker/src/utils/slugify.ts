@@ -1,5 +1,3 @@
-import type { D1Database } from '@cloudflare/workers-types';
-
 export function generateSlug(text: string): string {
   if (!text) {
     return '';
